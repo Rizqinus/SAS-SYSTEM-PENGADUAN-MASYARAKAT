@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function DetailLaporanAdminClient() {
   const params = useParams();
@@ -37,11 +38,8 @@ export default function DetailLaporanAdminClient() {
   const fetchKomentar = React.useCallback(async () => {
     if (!id) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar`);
-      if (response.ok) {
-        const data = await response.json();
-        setKomentarList(data);
-      }
+      const response = await api.get(`/laporan/${id}/komentar`);
+      setKomentarList(response.data);
     } catch (error) {
       console.error('Error fetching komentar:', error);
     }
@@ -50,21 +48,13 @@ export default function DetailLaporanAdminClient() {
   const fetchDetail = React.useCallback(async () => {
     if (!id) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLaporan(data);
-        setStatus(data.status || 'pending');
-      } else {
-        router.push('/admin/manajemen-laporan');
-      }
+      const response = await api.get(`/laporan/${id}`);
+      const data = response.data;
+      setLaporan(data);
+      setStatus(data.status || 'pending');
     } catch (error) {
       console.error('Error fetching detail:', error);
+      router.push('/admin/manajemen-laporan');
     } finally {
       setIsLoading(false);
     }
@@ -82,26 +72,12 @@ export default function DetailLaporanAdminClient() {
     setKomentarError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ isi_komentar: newKomentar }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setNewKomentar('');
-        fetchKomentar();
-      } else {
-        setKomentarError(result.message || 'Gagal menambahkan komentar.');
-      }
-    } catch (error) {
-      setKomentarError('Terjadi kesalahan saat mengirim komentar.');
+      await api.post(`/laporan/${id}/komentar`, { isi_komentar: newKomentar });
+      setNewKomentar('');
+      fetchKomentar();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Gagal menambahkan komentar.';
+      setKomentarError(message);
     } finally {
       setIsSubmittingKomentar(false);
     }
@@ -111,46 +87,21 @@ export default function DetailLaporanAdminClient() {
     if (!window.confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar/${commentId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        fetchKomentar();
-      } else {
-        alert(result.message || 'Gagal menghapus komentar.');
-      }
-    } catch (error) {
+      await api.delete(`/laporan/${id}/komentar/${commentId}`);
+      fetchKomentar();
+    } catch (error: any) {
       console.error('Error deleting comment:', error);
-      alert('Terjadi kesalahan saat menghapus komentar.');
+      const message = error.response?.data?.message || 'Terjadi kesalahan saat menghapus komentar.';
+      alert(message);
     }
   };
 
   const handleUpdateStatus = async () => {
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      if (response.ok) {
-        alert('Status berhasil diperbarui!');
-        fetchDetail();
-      } else {
-        alert('Gagal memperbarui status');
-      }
+      await api.put(`/laporan/${id}/status`, { status });
+      alert('Status berhasil diperbarui!');
+      fetchDetail();
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Terjadi kesalahan jaringan');

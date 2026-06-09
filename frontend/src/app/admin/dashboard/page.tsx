@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -32,34 +33,27 @@ export default function AdminDashboard() {
 
   const fetchLaporan = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/laporan', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await api.get('/laporan');
+      const data = res.data;
+      setLaporan(data);
+      
+      let pending = 0;
+      let in_progress = 0;
+      let resolved = 0;
+
+      data.forEach((item: any) => {
+        const s = item.status?.toLowerCase();
+        if (s === 'pending' || s === 'menunggu') pending++;
+        else if (s === 'in_progress' || s === 'proses') in_progress++;
+        else if (s === 'resolved' || s === 'selesai') resolved++;
       });
-      if (res.ok) {
-        const data = await res.json();
-        setLaporan(data);
-        
-        let pending = 0;
-        let in_progress = 0;
-        let resolved = 0;
 
-        data.forEach((item: any) => {
-          const s = item.status?.toLowerCase();
-          if (s === 'pending' || s === 'menunggu') pending++;
-          else if (s === 'in_progress' || s === 'proses') in_progress++;
-          else if (s === 'resolved' || s === 'selesai') resolved++;
-        });
-
-        setStats({
-          total: data.length,
-          pending,
-          in_progress,
-          resolved
-        });
-      }
+      setStats({
+        total: data.length,
+        pending,
+        in_progress,
+        resolved
+      });
     } catch (e) {
       console.error(e);
     }

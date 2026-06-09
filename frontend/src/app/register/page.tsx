@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,31 +64,22 @@ export default function RegisterPage() {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nik: formData.nik,
-          nama_lengkap: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          no_telp: formData.phone
-        }),
+      await api.post('/auth/register', {
+        nik: formData.nik,
+        nama_lengkap: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        no_telp: formData.phone
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Tampilkan Peringatan Keberhasilan (Alert)
-        alert('Pendaftaran Berhasil!\nAkun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.');
-        
-        // Arahkan ke halaman login
-        router.push('/login');
-      } else {
-        setErrorMsg(data.message || 'Gagal mendaftar. Silakan periksa data Anda.');
-      }
-    } catch (err) {
-      setErrorMsg('Tidak dapat terhubung ke server. Pastikan backend sudah menyala.');
+      // Tampilkan Peringatan Keberhasilan (Alert)
+      alert('Pendaftaran Berhasil!\nAkun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.');
+      
+      // Arahkan ke halaman login
+      router.push('/login');
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Gagal mendaftar. Silakan periksa data Anda.';
+      setErrorMsg(message);
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function KelolaUser() {
   const router = useRouter();
@@ -38,14 +39,8 @@ export default function KelolaUser() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      }
+      const res = await api.get('/users');
+      setUsers(res.data);
     } catch (e) {
       console.error('Network Error:', e);
     }
@@ -55,28 +50,23 @@ export default function KelolaUser() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/users', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ nik, nama_lengkap: namaLengkap, email, password, role, no_telp: noTelp })
+      const res = await api.post('/users', {
+        nik,
+        nama_lengkap: namaLengkap,
+        email,
+        password,
+        role,
+        no_telp: noTelp
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        alert('User berhasil ditambahkan!');
-        setNik(''); setNamaLengkap(''); setEmail(''); setPassword(''); setNoTelp('');
-        setIsModalOpen(false);
-        fetchUsers();
-      } else {
-        alert(data.message || 'Gagal menambahkan user');
-      }
-    } catch (error) {
+      alert('User berhasil ditambahkan!');
+      setNik(''); setNamaLengkap(''); setEmail(''); setPassword(''); setNoTelp('');
+      setIsModalOpen(false);
+      fetchUsers();
+    } catch (error: any) {
       console.error(error);
-      alert('Terjadi kesalahan server');
+      const message = error.response?.data?.message || 'Gagal menambahkan user';
+      alert(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -85,44 +75,23 @@ export default function KelolaUser() {
   const handleDeleteUser = async (id: string, name: string) => {
     if (!confirm(`Apakah Anda yakin ingin menghapus user ${name}?`)) return;
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (res.ok) {
-        alert('User berhasil dihapus');
-        fetchUsers();
-      } else {
-        alert('Gagal menghapus user');
-      }
+      await api.delete(`/users/${id}`);
+      alert('User berhasil dihapus');
+      fetchUsers();
     } catch (error) {
       console.error(error);
+      alert('Gagal menghapus user');
     }
   };
 
   const handleUpdateRole = async (id: string, newRole: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/users/${id}/role`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ role: newRole })
-      });
-      
-      if (res.ok) {
-        fetchUsers();
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Gagal memperbarui role');
-      }
-    } catch (error) {
+      await api.put(`/users/${id}/role`, { role: newRole });
+      fetchUsers();
+    } catch (error: any) {
       console.error(error);
-      alert('Terjadi kesalahan jaringan');
+      const message = error.response?.data?.message || 'Gagal memperbarui role';
+      alert(message);
     }
   };
 

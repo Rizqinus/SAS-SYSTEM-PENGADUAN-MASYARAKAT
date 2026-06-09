@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import PublicNavbar from './PublicNavbar';
 import PublicFooter from './PublicFooter';
+import api from '@/utils/api';
 
 interface Laporan {
   id: string;
@@ -45,11 +46,8 @@ const DetailLaporanPublicClient: React.FC = () => {
   const fetchKomentar = React.useCallback(async () => {
     if (!id) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar`);
-      if (response.ok) {
-        const data = await response.json();
-        setKomentarList(data);
-      }
+      const response = await api.get(`/laporan/${id}/komentar`);
+      setKomentarList(response.data);
     } catch (error) {
       console.error('Error fetching komentar:', error);
     }
@@ -58,15 +56,11 @@ const DetailLaporanPublicClient: React.FC = () => {
   const fetchDetail = React.useCallback(async () => {
     if (!id) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setLaporan(data);
-      } else {
-        router.push('/');
-      }
+      const response = await api.get(`/laporan/${id}`);
+      setLaporan(response.data);
     } catch (error) {
       console.error('Error fetching detail:', error);
+      router.push('/');
     } finally {
       setIsLoading(false);
     }
@@ -88,26 +82,12 @@ const DetailLaporanPublicClient: React.FC = () => {
     setKomentarError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ isi_komentar: newKomentar }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setNewKomentar('');
-        fetchKomentar();
-      } else {
-        setKomentarError(result.message || 'Gagal menambahkan komentar.');
-      }
-    } catch (error) {
-      setKomentarError('Terjadi kesalahan saat mengirim komentar.');
+      await api.post(`/laporan/${id}/komentar`, { isi_komentar: newKomentar });
+      setNewKomentar('');
+      fetchKomentar();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Gagal menambahkan komentar.';
+      setKomentarError(message);
     } finally {
       setIsSubmittingKomentar(false);
     }
@@ -117,24 +97,12 @@ const DetailLaporanPublicClient: React.FC = () => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/laporan/${id}/komentar/${commentId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        fetchKomentar();
-      } else {
-        alert(result.message || 'Gagal menghapus komentar.');
-      }
-    } catch (error) {
+      await api.delete(`/laporan/${id}/komentar/${commentId}`);
+      fetchKomentar();
+    } catch (error: any) {
       console.error('Error deleting comment:', error);
-      alert('Terjadi kesalahan saat menghapus komentar.');
+      const message = error.response?.data?.message || 'Terjadi kesalahan saat menghapus komentar.';
+      alert(message);
     }
   };
 

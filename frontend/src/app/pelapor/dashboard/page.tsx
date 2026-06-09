@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PublicNavbar from '../../../components/PublicNavbar';
 import PublicFooter from '../../../components/PublicFooter';
+import api from '@/utils/api';
 
 export default function DashboardPelapor() {
   const router = useRouter();
@@ -36,16 +37,8 @@ export default function DashboardPelapor() {
 
   const fetchLaporan = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/laporan/my/all', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLaporan(data);
-      }
+      const response = await api.get('/laporan/my/all');
+      setLaporan(response.data);
     } catch (error) {
       console.error('Error fetching laporan:', error);
     } finally {

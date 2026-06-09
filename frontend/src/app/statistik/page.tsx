@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PublicNavbar from '../../components/PublicNavbar';
 import PublicFooter from '../../components/PublicFooter';
+import api from '@/utils/api';
 
 interface Laporan {
   id: string;
@@ -31,11 +32,8 @@ export default function StatistikPage() {
 
     const fetchLaporan = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/laporan');
-        if (response.ok) {
-          const data = await response.json();
-          setLaporan(data);
-        }
+        const response = await api.get('/laporan');
+        setLaporan(response.data);
       } catch (error) {
         console.error('Error fetching laporan for stats:', error);
       } finally {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,37 +40,29 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.identifier, // API expects 'email'
-          password: formData.password
-        }),
+      const response = await api.post('/auth/login', {
+        email: formData.identifier, // API expects 'email'
+        password: formData.password
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        // Success
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Tampilkan Peringatan Keberhasilan (Alert)
-        alert(`Login Berhasil!\nSelamat datang kembali, ${data.user.nama_lengkap}.`);
-        
-        // Arahkan ke dashboard sesuai role
-        if (data.user.role === 'admin' || data.user.role === 'super_admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/pelapor/dashboard');
-        }
+      // Success
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Tampilkan Peringatan Keberhasilan (Alert)
+      alert(`Login Berhasil!\nSelamat datang kembali, ${data.user.nama_lengkap}.`);
+      
+      // Arahkan ke dashboard sesuai role
+      if (data.user.role === 'admin' || data.user.role === 'super_admin') {
+        router.push('/admin/dashboard');
       } else {
-        // Error from API
-        setErrorMsg(data.message || 'Gagal login. Periksa kembali kredensial Anda.');
+        router.push('/pelapor/dashboard');
       }
-    } catch (err) {
-      setErrorMsg('Tidak dapat terhubung ke server. Pastikan backend sudah menyala.');
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Gagal login. Periksa kembali kredensial Anda.';
+      setErrorMsg(message);
     } finally {
       setIsLoading(false);
     }

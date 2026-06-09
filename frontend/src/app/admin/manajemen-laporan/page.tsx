@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/api';
 
 export default function ManajemenLaporan() {
   const router = useRouter();
@@ -28,16 +29,8 @@ export default function ManajemenLaporan() {
 
   const fetchLaporan = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/laporan', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setLaporan(data);
-      }
+      const res = await api.get('/laporan');
+      setLaporan(res.data);
     } catch (e) {
       console.error(e);
     }

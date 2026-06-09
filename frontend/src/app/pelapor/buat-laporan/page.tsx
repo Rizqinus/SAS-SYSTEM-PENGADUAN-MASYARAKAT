@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PublicNavbar from '../../../components/PublicNavbar';
 import PublicFooter from '../../../components/PublicFooter';
+import api from '@/utils/api';
 
 export default function BuatLaporan() {
   const router = useRouter();
@@ -38,11 +39,8 @@ export default function BuatLaporan() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories');
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-        }
+        const response = await api.get('/categories');
+        setCategories(response.data);
       } catch (error) {
         console.error('Gagal mengambil kategori:', error);
       }
@@ -80,7 +78,6 @@ export default function BuatLaporan() {
     setErrorMsg('');
 
     try {
-      const token = localStorage.getItem('token');
       const data = new FormData();
       data.append('judul', formData.judul);
       data.append('category_id', formData.category_id);
@@ -91,24 +88,13 @@ export default function BuatLaporan() {
         data.append('foto', foto);
       }
 
-      const response = await fetch('http://localhost:5000/api/laporan', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: data,
-      });
+      await api.post('/laporan', data);
 
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('Laporan berhasil dibuat!');
-        router.push('/pelapor/dashboard');
-      } else {
-        setErrorMsg(result.message || 'Gagal membuat laporan.');
-      }
-    } catch (error) {
-      setErrorMsg('Terjadi kesalahan saat mengirim laporan.');
+      alert('Laporan berhasil dibuat!');
+      router.push('/pelapor/dashboard');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Terjadi kesalahan saat mengirim laporan.';
+      setErrorMsg(message);
     } finally {
       setIsSubmitting(false);
     }

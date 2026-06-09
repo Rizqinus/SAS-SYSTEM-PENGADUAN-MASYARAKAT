@@ -10,10 +10,10 @@ Aplikasi ini menggunakan model arsitektur terpisah (*decoupled*):
 * **Frontend (Next.js)** berjalan di port `3000` dan merender antarmuka pengguna (UI).
 * **Backend (Express.js)** berjalan di port `5000` sebagai RESTful API yang memproses data.
 * **Database (MySQL)** berjalan di port `3306` untuk menyimpan data.
-* Frontend berkomunikasi dengan Backend melalui protokol HTTP (`fetch` API) dengan proteksi **CORS (Cross-Origin Resource Sharing)**.
+* Frontend berkomunikasi dengan Backend melalui protokol HTTP menggunakan client **Axios** dengan proteksi **CORS (Cross-Origin Resource Sharing)**.
 
 ```text
-+-------------------+             HTTP (fetch)            +-------------------+
++-------------------+             HTTP (Axios)            +-------------------+
 | Next.js Frontend  | <=================================> | ExpressJS Backend |
 |   (Port 3000)     |                                     |    (Port 5000)    |
 +-------------------+                                     +-------------------+
@@ -78,11 +78,14 @@ frontend/
 │   │   ├── layout.tsx          # Root Layout (memuat styling global & fonts)
 │   │   └── page.tsx            # Landing Page utama
 │   │
-│   └── components/             # Komponen UI Reusable
-│       ├── DetailLaporanAdminClient.tsx
-│       ├── DetailLaporanPublicClient.tsx
-│       ├── PublicNavbar.tsx
-│       └── PublicFooter.tsx
+│   ├── components/             # Komponen UI Reusable
+│   │   ├── DetailLaporanAdminClient.tsx
+│   │   ├── DetailLaporanPublicClient.tsx
+│   │   ├── PublicNavbar.tsx
+│   │   └── PublicFooter.tsx
+│   │
+│   └── utils/
+│       └── api.ts              # Konfigurasi Axios Client Instance + Interceptor JWT
 ```
 
 ### C. Autentikasi & Proteksi Halaman Client-Side
@@ -146,6 +149,77 @@ export default function PublicFooter() {
     </footer>
   );
 }
+```
+
+### E. Integrasi & Pemanggilan API dengan Axios
+
+Untuk mempermudah pemanggilan REST API dari Backend, aplikasi ini menggunakan **Axios** alih-alih `fetch` API bawaan browser.
+
+#### Keuntungan Menggunakan Axios:
+1. **Otomatis Parsing JSON:** Tidak perlu lagi menulis `await response.json()`, data hasil respons server langsung tersedia di properti `.data`.
+2. **Penanganan Error Terpusat:** Respons status HTTP di luar jangkauan 2xx (seperti 400, 401, 500) akan otomatis memicu block `catch(error)`.
+3. **Interceptors:** Memungkinkan penambahan Header Authorization secara global untuk seluruh pemanggilan API.
+
+#### Pembuatan Axios Client Instance (`src/utils/api.ts`)
+Berkas ini bertindak sebagai perantara pemanggilan API tunggal yang secara otomatis menyertakan Token JWT Pelapor/Admin saat tersimpan di `localStorage`:
+
+```typescript
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+});
+
+// Menambahkan token JWT secara otomatis pada setiap request ke Backend
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+```
+
+#### Contoh Cara Penggunaan di Komponen (GET Request):
+```typescript
+import api from '@/utils/api';
+
+const fetchLaporan = async () => {
+  try {
+    const response = await api.get('/laporan/my/all');
+    setLaporan(response.data); // data otomatis diparse ke object JSON
+  } catch (error) {
+    console.error('Error fetching laporan:', error);
+  }
+};
+```
+
+#### Contoh Cara Penggunaan di Komponen (POST Request dengan FormData / Upload Gambar):
+```typescript
+import api from '@/utils/api';
+
+const handleSubmit = async (formData) => {
+  try {
+    const data = new FormData();
+    data.append('judul', formData.judul);
+    if (foto) data.append('foto', foto);
+
+    // Axios otomatis menyetel Content-Type ke multipart/form-data jika menerima instance FormData
+    const response = await api.post('/laporan', data);
+    alert('Laporan berhasil terkirim!');
+  } catch (error) {
+    alert(error.response?.data?.message || 'Terjadi kesalahan.');
+  }
+};
 ```
 
 ---
