@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.next/
+dist/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# IDEs and System files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.gemini/
+*.log

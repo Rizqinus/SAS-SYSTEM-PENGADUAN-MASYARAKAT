@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme {
+  /* ===== Material 3 Color Tokens ===== */
+  --color-error: #ba1a1a;
+  --color-on-background: #1d1b20;
+  --color-on-tertiary-fixed-variant: #594400;
+  --color-surface-tint: #6750a4;
+  --color-surface-container-low: #f8f2fa;
+  --color-on-secondary-fixed: #1f1635;
+  --color-primary: #4f378a;
+  --color-on-primary-fixed: #22005d;
+  --color-inverse-surface: #322f35;
+  --color-surface-bright: #fdf7ff;
+  --color-primary-fixed-dim: #cfbcff;
+  --color-on-primary-container: #e0d2ff;
+  --color-on-tertiary: #ffffff;
+  --color-inverse-primary: #cfbcff;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-container: #503d00;
+  --color-on-secondary-container: #645a7d;
+  --color-surface: #fdf7ff;
+  --color-secondary-fixed-dim: #cdc0e9;
+  --color-tertiary-fixed: #ffdf93;
+  --color-surface-variant: #e6e0e9;
+  --color-primary-container: #6750a4;
+  --color-on-error: #ffffff;
+  --color-surface-container-highest: #e6e0e9;
+  --color-on-surface: #1d1b20;
+  --color-on-secondary: #ffffff;
+  --color-tertiary-container: #c9a74d;
+  --color-on-secondary-fixed-variant: #4b4263;
+  --color-background: #fdf7ff;
+  --color-outline-variant: #cbc4d2;
+  --color-on-primary-fixed-variant: #4f378a;
+  --color-surface-container-high: #ece6ee;
+  --color-tertiary: #765b00;
+  --color-surface-container-lowest: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-tertiary-fixed-dim: #e7c365;
+  --color-surface-container: #f2ecf4;
+  --color-secondary-container: #e1d4fd;
+  --color-outline: #7a7582;
+  --color-secondary-fixed: #e9ddff;
+  --color-inverse-on-surface: #f5eff7;
+  --color-on-surface-variant: #494551;
+  --color-secondary: #63597c;
+  --color-primary-fixed: #e9ddff;
+  --color-on-primary: #ffffff;
+  --color-surface-dim: #ded8e0;
+  --color-on-error-container: #93000a;
+
+  /* ===== Font Size Tokens ===== */
+  --font-size-label-md: 14px;
+  --font-size-headline-lg-mobile: 24px;
+  --font-size-display-lg: 48px;
+  --font-size-headline-md: 24px;
+  --font-size-body-md: 16px;
+  --font-size-body-lg: 18px;
+  --font-size-headline-lg: 32px;
+  --font-size-caption: 12px;
+
+  /* ===== Spacing Tokens ===== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-base: 4px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1440px;
+  --spacing-margin-mobile: 20px;
+  --spacing-margin-desktop: 64px;
+}
+
+/* ===== Material Symbols default settings ===== */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ===== Semantic Typography Utilities ===== */
+@utility text-label-md {
+  font-family: "Public Sans", sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+@utility text-headline-lg-mobile {
+  font-family: "Public Sans", sans-serif;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+@utility text-display-lg {
+  font-family: "Public Sans", sans-serif;
+  font-size: 48px;
+  line-height: 56px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+@utility text-headline-md {
+  font-family: "Public Sans", sans-serif;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+@utility text-headline-sm {
+  font-family: "Public Sans", sans-serif;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+@utility text-body-md {
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+@utility text-body-lg {
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+}
+
+@utility text-headline-lg {
+  font-family: "Public Sans", sans-serif;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+@utility text-caption {
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+/* ===== Base Styles ===== */
+@layer base {
+  body {
+    @apply bg-background text-on-background antialiased;
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+/* ===== Component Classes ===== */
+@layer components {
+  .unboxed-card {
+    @apply bg-surface-container-lowest shadow-[0px_4px_20px_rgba(0,0,0,0.04)] rounded-[12px] border border-outline-variant/30 transition-shadow duration-300 hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)];
+  }
+  .glass-accent {
+    @apply bg-primary/5 backdrop-blur-[4px];
+  }
+}
